@@ -1,0 +1,1 @@
+`docker build -t barnyard-api . && docker run -e DB_HOST=barnbase1 --network alpha -p 5000:5000 --name barnyard-api1 barnyard-api`
