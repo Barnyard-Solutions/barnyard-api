@@ -16,6 +16,6 @@ RUN apt-get update && pip install --trusted-host pypi.python.org -r req.txt
 EXPOSE 5000
 
 # Start the API using Gunicorn
-CMD ["gunicorn", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "--workers=1", "--bind=0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:5000", "app:app"]
 #CMD ["gunicorn", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "--workers=1", "--bind=0.0.0.0:5000", "app:app"]
 #CMD ["sh","-c","tail -f /dev/null"]
