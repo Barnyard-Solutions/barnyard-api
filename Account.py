@@ -16,7 +16,18 @@ debug =False
 class MyBD:
   def __init__(self):
     self.PASS ="kKQdH@qX93"
-    self.start()
+    count = 0
+    sucess = False
+    while (not sucess or count < 18):
+      try:
+        self.start()
+        sucess = True
+      except Exception as e:
+        # to be perficetioned
+        #print(Exception)
+        print("wating for bd to start up ....")
+        time.sleep(10)
+        count +=1
     
   def start(self):
     self.mydb = mysql.connector.connect(
