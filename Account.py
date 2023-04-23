@@ -6,19 +6,22 @@ import os
 
 db_host = os.getenv('DB_HOST')
 
+print("db_host", db_host)
+
+
 def log(s):
     if debug:
         print("[bold yellow][DEBUG][Account][/bold yellow]",s)
-debug =False
+debug = True
 
 
 
 class MyBD:
   def __init__(self):
     self.PASS ="kKQdH@qX93"
-    count = 0
+    
     sucess = False
-    while (not sucess or count < 18):
+    while (not sucess ):
       try:
         self.start()
         sucess = True
@@ -27,7 +30,8 @@ class MyBD:
         #print(Exception)
         print("wating for bd to start up ....")
         time.sleep(10)
-        count +=1
+      
+    log("connection sucessfull")
     
   def start(self):
     self.mydb = mysql.connector.connect(
