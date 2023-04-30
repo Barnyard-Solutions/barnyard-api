@@ -1,1 +1,1 @@
-`docker build -t barnyard-api . && docker create  -e DB_HOST=barnbase1 --network alpha  -p 5000:5000 --name barnyard-api1 barnyard-api && docker network connect beta barnyard-api1 && docker start -a barnyard-api1`
+`docker build -t barnyard-api . && docker create  -e DB_HOST=barnyard-database --network alpha  -p 5000:5000 --name barnyard-api1 barnyard-api && docker network connect beta barnyard-api1 && docker start -a barnyard-api1`

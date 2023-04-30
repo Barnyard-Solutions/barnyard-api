@@ -1,7 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim-buster
 
-ENV DB_HOST=barnapi1
+ENV DB_HOST=barnyard-database1
 
 # Set the working directory to /app
 WORKDIR /app

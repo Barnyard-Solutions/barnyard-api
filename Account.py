@@ -12,7 +12,7 @@ print("db_host", db_host)
 def log(s):
     if debug:
         print("[bold yellow][DEBUG][Account][/bold yellow]",s)
-debug = True
+debug = False
 
 
 
