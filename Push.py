@@ -22,9 +22,9 @@ def send_web_push(subscription_information, message_body):
 
 if __name__ == '__main__':
     sub_info = {
-    'endpoint': 'https://fcm.googleapis.com/fcm/send/f_PsZXPWnhE:APA91bHo5y4XIxPZqmYMqGwXznHdFiR14PsqecR6jSMZClW6q2_en5jK2kGBhQTaGtg7w6oUH9ua5F5-ynfCg7wNf-UQORGphhwdPGoXIhSKjH5n1HawmZKDq0MVsc1XF7mm_7iRcQnq',
+    'endpoint': 'https://fcm.googleapis.com/fcm/send/fs2hXM1Wwlk:APA91bFrbKWt3DGOjsZXRqJvorI6g3lmGpuXQlo_yhF4Zn2-sMIddVeukTSiP7gT19UVpggeYmknue7vQKdqE_MjBqIH8gNTah3NVUb3K6Z6voAQdjznVvFpwpHjLNgkhPCzgcUOpaCD',
     'expirationTime': None,
-    'keys': {'p256dh': 'BPvayYK8h62mmllWopLVTqxA4XaPwvAITxp5teiu6ecZuB7F4MJDdqNfbpWOE3ag2wB3ZnD9Xe6KCGUCnq065kQ', 'auth': 'orwucmaF4uepp1lkiwN66Q'}
+    'keys': {'p256dh': 'BDw53IaZvj1-tCG2yFrBqpWEpduOvchYu3HkCeHt4pJkrSYhIxFvChM9jeu9kI26MvVog_-jqPf4XfBgebELtho', 'auth': 'Q8gRyARlTRB66zpppNAlVw'}
 }
 
 
