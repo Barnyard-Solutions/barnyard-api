@@ -1,24 +1,25 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+
+	"barnyard/api/routers"
 )
 
 // func getDefaultMessage(c *gin.Context) {
 // 	c.IndentedJSON(http.StatusOK, "👋 Barnyard API is up <br> ")
 // }
 
-func getDefaultMessage(c *gin.Context) {
-	//c.Header("Content-Type", "text/html")
-	//c.String(http.StatusOK, html.EscapeString("👋")+)
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte("👋 Barnyard API is up <br> check github repo <a href='https://github.com/Barnyard-Solutions/barnyard-api' >here</a>"))
-}
-
 func main() {
 	router := gin.Default()
-	router.GET("/", getDefaultMessage)
+
+	router.Static("/static", "./static")
+
+	router.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./static/favicon.svg")
+	})
+
+	routers.SetUp(router)
 
 	router.Run("localhost:5000")
 }
