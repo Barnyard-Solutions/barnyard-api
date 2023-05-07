@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"barnyard/api/database"
 	"barnyard/api/models"
 
 	"github.com/gin-gonic/gin"
@@ -19,13 +20,13 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Access the values from the s struct
-	//userID := user.ID
-	//userName := user.Name
-
-	// Perform desired operations with the retrieved values
+	err := database.InsertUser(user.Email, user.PassKey)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to insert user into the database"})
+		return
+	}
 
 	c.JSON(200, gin.H{
-		"message": "Event created",
+		"message": "User created successfully",
 	})
 }
