@@ -69,7 +69,7 @@ func GetFeeds(token string) []models.Feed {
 	query := `SELECT FEED_ID, FEED_NAME, MAX(permission) AS permission
 	FROM (
 	  SELECT fv.FEED_ID, f.FEED_NAME, fv.USER_PERMISSION_LEVEL AS permission
-	  FROM barnyard.feed_viewer AS fv
+	  FROM barnyard.feed_member AS fv
 	  INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID 
 	  INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY =?
 	
@@ -107,4 +107,97 @@ func GetFeeds(token string) []models.Feed {
 	}
 
 	return feeds
+}
+
+func InsertFeed(token, feedName string) (bool, error) {
+	stmt, err := db.Prepare(`INSERT INTO feed (FEED_NAME, OWNER_ID) 
+	SELECT ?, uk.USER_ID FROM user_key as uk where uk.USER_KEY = ? `)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(feedName, token)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if rowsAffected == 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func DeleteFeed(token string, feedID int) (bool, error) {
+	stmt, err := db.Prepare(`
+	DELETE f
+	FROM feed AS f
+	INNER JOIN user_key AS uk ON uk.USER_ID = f.OWNER_ID AND uk.USER_KEY = ?
+	WHERE f.FEED_ID = ?`)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(token, feedID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if rowsAffected == 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func InsertEvent(token, name1, name2, date string, feedID int) (bool, error) {
+	stmt, err := db.Prepare(`INSERT INTO event (NAME_1, NAME_2, DATE, FEED_ID) 
+	SELECT ?, ?, ?, p.FEED_ID
+		FROM (
+			SELECT fv.FEED_ID
+			FROM barnyard.feed_member AS fv
+			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
+			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
+			
+			UNION
+			
+			SELECT f.FEED_ID
+			FROM barnyard.feed AS f
+			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
+		) AS p
+		WHERE p.FEED_ID = ?;
+	
+	`)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(name1, name2, date, token, token, feedID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if rowsAffected == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }

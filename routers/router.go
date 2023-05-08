@@ -16,9 +16,12 @@ func SetUp(router *gin.Engine) {
 		userRoutes.POST("/token", handlers.GetToken)
 	}
 
-	feedsRoutes := v1.Group("/feed")
+	feedRoutes := v1.Group("/feed")
 	{
-		feedsRoutes.GET("/", handlers.GetFeeds)
+		feedRoutes.GET("/", handlers.GetFeeds)
+		feedRoutes.POST("/", handlers.CreateFeed)
+		feedRoutes.DELETE("/", handlers.RemoveFeed)
+		feedRoutes.POST("/event", handlers.CreateEvent)
 	}
 
 }
