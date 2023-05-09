@@ -22,6 +22,7 @@ func SetUp(router *gin.Engine) {
 		feedRoutes.POST("/", handlers.CreateFeed)
 		feedRoutes.DELETE("/", handlers.RemoveFeed)
 		feedRoutes.POST("/event", handlers.CreateEvent)
+		feedRoutes.GET("/event", handlers.GetEvent)
 	}
 
 }

@@ -17,3 +17,8 @@ type CreateEventRequest struct {
 	Name2  string `json:"name2"`
 	Date   string `json:"date"`
 }
+
+type GetEventRequest struct {
+	Token  string `json:"token"`
+	FeedID int    `json:"feed_id"`
+}
