@@ -22,9 +22,11 @@ func SetUp(router *gin.Engine) {
 		feedRoutes.Use(middlewares.TokenAuthMiddleware())
 		feedRoutes.GET("/", handlers.GetFeeds)
 		feedRoutes.POST("/", handlers.CreateFeed)
-		feedRoutes.DELETE("/", handlers.RemoveFeed)
-		feedRoutes.POST("/event", handlers.CreateEvent)
+		feedRoutes.DELETE("/:id", handlers.RemoveFeed)
+		feedRoutes.POST("/:id/event", handlers.CreateEvent)
 		feedRoutes.GET("/:id/event", handlers.GetEvent)
+		feedRoutes.DELETE("/:id/event/:eventID", handlers.RemoveEvent)
+
 	}
 
 }

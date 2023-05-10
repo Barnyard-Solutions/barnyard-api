@@ -4,6 +4,7 @@ import (
 	"barnyard/api/models"
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
@@ -17,6 +18,9 @@ var (
 func InitDB(connectionString string) error {
 	var err error
 	log = logrus.New() // Initialize the log variable
+	// Set the output to os.Stdout to log to the console
+	log.SetOutput(os.Stdout)
+	log.SetLevel(logrus.ErrorLevel) // Set the log level to Error or lower
 
 	db, err = sql.Open("mysql", connectionString)
 	if err != nil {
@@ -272,4 +276,36 @@ func SelectEvents(token string, feedID int) ([]models.Event, error) {
 
 	return events, nil
 
+}
+
+func DeleteEvent(token string, feedID, eventID int) (bool, error) {
+	stmt, err := db.Prepare(`
+	DELETE e
+	FROM event AS e
+	INNER JOIN feed AS f ON f.FEED_ID = e.FEED_ID
+	INNER JOIN user_key AS uk ON uk.USER_ID = f.OWNER_ID AND uk.USER_KEY = ?
+	WHERE f.FEED_ID = ? AND e.EVENT_ID = ?`)
+	if err != nil {
+		log.Errorf("Failed to prepare delete feed statement: %s", err)
+		return false, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(token, feedID, eventID)
+	if err != nil {
+		log.Errorf("Failed to execute delete event statement: %s", err)
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Errorf("Failed to retrieve rows affected: %s", err)
+		return false, err
+	}
+
+	if rowsAffected == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }
