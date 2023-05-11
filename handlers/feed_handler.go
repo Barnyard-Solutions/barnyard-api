@@ -158,3 +158,59 @@ func RemoveEvent(c *gin.Context) {
 	})
 
 }
+
+func CreateMilestone(c *gin.Context) {
+	var requestBody models.CreateMilestoneRequest
+	token := c.GetString("token")
+	feedID := c.Param("id")
+
+	// Convert feedID to an integer
+	feedIDInt, err := strconv.Atoi(feedID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid feed ID"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
+
+	success, err := database.InsertMilestone(token, requestBody.Name,
+		requestBody.Color, feedIDInt, requestBody.Date)
+	if err != nil || !success {
+		c.JSON(500, gin.H{"error": err})
+
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "Milestone created successfully",
+	})
+
+}
+
+func GetMilestone(c *gin.Context) {
+	feedID := c.Param("id")
+	token := c.GetString("token")
+
+	// Convert feedID to an integer
+	feedIDInt, err := strconv.Atoi(feedID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid feed ID"})
+		return
+	}
+
+	milestones, err := database.SelectMilestone(token, feedIDInt)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err})
+
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message":    "Milestones retrieved successfully",
+		"milestones": milestones,
+	})
+
+}
