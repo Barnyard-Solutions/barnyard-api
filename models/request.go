@@ -15,3 +15,7 @@ type CreateMilestoneRequest struct {
 	Date  int    `json:"date"`
 	Color string `json:"color"`
 }
+
+type CreateSubscriptionRequest struct {
+	Subscription string `json:"subscription"`
+}

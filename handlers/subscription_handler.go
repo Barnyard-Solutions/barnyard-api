@@ -3,13 +3,42 @@ package handlers
 import (
 	"barnyard/api/database"
 	"barnyard/api/models"
-
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetFeeds(c *gin.Context) {
+func CreateSubscription(c *gin.Context) {
+	var requestBody models.CreateSubscriptionRequest
+	token := c.GetString("token")
+	feedID := c.Param("id")
+
+	// Convert feedID to an integer
+	feedIDInt, err := strconv.Atoi(feedID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid feed ID"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
+
+	success, err := database.InsertSubscription(token, requestBody.Subscription, feedIDInt)
+	if err != nil || !success {
+		c.JSON(500, gin.H{"error": "Failed to create user's subscription"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User subscription created successfully",
+	})
+}
+
+/*
+
+func GetSubscriptions(c *gin.Context) {
 	token := c.GetString("token")
 	feeds, err := database.SelectFeeds(token)
 	if err != nil {
@@ -20,30 +49,6 @@ func GetFeeds(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "User feeds retrieved successfully",
 		"feeds":   feeds,
-	})
-}
-
-func CreateFeed(c *gin.Context) {
-	var requestBody models.CreateFeedRequest
-	token := c.GetString("token")
-
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
-		return
-	}
-
-	success, err := database.InsertFeed(token, requestBody.FeedName)
-	if err != nil || !success {
-		if database.IsDuplicateEntryError(err) {
-			c.JSON(400, gin.H{"error": "Feed name already exists"})
-		} else {
-			c.JSON(500, gin.H{"error": "Failed to create user's feed"})
-		}
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"message": "User feed created successfully",
 	})
 }
 
@@ -70,3 +75,4 @@ func RemoveFeed(c *gin.Context) {
 	})
 
 }
+*/

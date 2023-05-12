@@ -24,6 +24,11 @@ func SetUp(router *gin.Engine) {
 		feedRoutes.POST("/", handlers.CreateFeed)
 		feedRoutes.DELETE("/:id", handlers.RemoveFeed)
 
+		subscriptionRoutes := feedRoutes.Group("/:id/subscription")
+		{
+			subscriptionRoutes.POST("/", handlers.CreateSubscription)
+		}
+
 		eventRoutes := feedRoutes.Group("/:id/event")
 		{
 			eventRoutes.POST("/", handlers.CreateEvent)
@@ -35,7 +40,7 @@ func SetUp(router *gin.Engine) {
 		{
 			milestoneRoutes.POST("/", handlers.CreateMilestone)
 			milestoneRoutes.GET("/", handlers.GetMilestone)
-			///milestoneRoutes.DELETE("/:eventID", handlers.RemoveEvent)
+			milestoneRoutes.DELETE("/:milestoneID", handlers.RemoveMilestone)
 		}
 
 	}
