@@ -8,23 +8,12 @@ import (
 )
 
 func SelectFeeds(token string) ([]models.Feed, error) {
-	query := `SELECT FEED_ID, FEED_NAME, MAX(permission) AS permission
-	FROM (
-	  SELECT fv.FEED_ID, f.FEED_NAME, fv.USER_PERMISSION_LEVEL AS permission
-	  FROM barnyard.feed_member AS fv
-	  INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID 
-	  INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY =?
-	
-	  UNION
-	
-	  SELECT f.FEED_ID, f.FEED_NAME, 8 AS permission
-	  FROM barnyard.feed AS f
-	  INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-	) AS subquery
-	GROUP BY FEED_ID, FEED_NAME
+	query := `SELECT fmp.FEED_ID, f.FEED_NAME, fmp.permission from feed_member_permission AS fmp
+	INNER JOIN user_key as uk ON uk.USER_ID = fmp.USER_ID AND uk.USER_KEY = ?
+	INNER JOIN feed as f ON f.FEED_ID = fmp.FEED_ID
 	`
 
-	rows, err := db.Query(query, token, token)
+	rows, err := db.Query(query, token)
 	if err != nil {
 		fmt.Println("Failed to execute query: ", err)
 		return nil, err

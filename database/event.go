@@ -9,20 +9,10 @@ import (
 
 func InsertEvent(token, name1, name2, date string, feedID int) (bool, error) {
 	stmt, err := db.Prepare(`INSERT INTO event (NAME_1, NAME_2, DATE, FEED_ID) 
-	SELECT ?, ?, ?, p.FEED_ID
-		FROM (
-			SELECT fv.FEED_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-			
-			UNION
-			
-			SELECT f.FEED_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		WHERE p.FEED_ID = ?;
+	SELECT ?, ?, ?, fmpd.FEED_ID
+	FROM feed_member_permission_detail AS fmpd
+	INNER JOIN user_key as uk ON uk.USER_ID = fmpd.USER_ID AND uk.USER_KEY = ?
+	WHERE fmpd.FEED_ID = ? AND fmpd.manage_event = 1
 	
 	`)
 	if err != nil {
@@ -31,7 +21,7 @@ func InsertEvent(token, name1, name2, date string, feedID int) (bool, error) {
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(name1, name2, date, token, token, feedID)
+	result, err := stmt.Exec(name1, name2, date, token, feedID)
 	if err != nil {
 		fmt.Println("Failed to execute insert event statement: ", err)
 		return false, err
@@ -53,24 +43,14 @@ func InsertEvent(token, name1, name2, date string, feedID int) (bool, error) {
 func SelectEvents(token string, feedID int) ([]models.Event, error) {
 
 	query := `
-	SELECT e.EVENT_ID, e.NAME_1, e.NAME_2, e.DATE, p.FEED_ID
-		FROM (
-			SELECT fv.FEED_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-			
-			UNION
-			
-			SELECT f.FEED_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		INNER JOIN event as e ON e.FEED_ID = p.FEED_ID
-		WHERE p.FEED_ID = ?;
+	SELECT e.EVENT_ID, e.NAME_1, e.NAME_2, e.DATE, fmpd.FEED_ID
+		FROM feed_member_permission_detail AS fmpd
+		INNER JOIN user_key as uk ON uk.USER_ID = fmpd.USER_ID AND uk.USER_KEY = ?
+		INNER JOIN event as e ON e.FEED_ID = fmpd.FEED_ID
+		WHERE fmpd.FEED_ID = ? ;
 	`
 
-	rows, err := db.Query(query, token, token, feedID)
+	rows, err := db.Query(query, token, feedID)
 	if err != nil {
 		fmt.Println("Failed to execute query: ", err)
 		return nil, err
@@ -102,9 +82,9 @@ func DeleteEvent(token string, feedID, eventID int) (bool, error) {
 	stmt, err := db.Prepare(`
 	DELETE e
 	FROM event AS e
-	INNER JOIN feed AS f ON f.FEED_ID = e.FEED_ID
-	INNER JOIN user_key AS uk ON uk.USER_ID = f.OWNER_ID AND uk.USER_KEY = ?
-	WHERE f.FEED_ID = ? AND e.EVENT_ID = ?`)
+	INNER JOIN feed_member_permission_detail AS fmpd ON fmpd.FEED_ID = e.FEED_ID
+	INNER JOIN user_key as uk ON uk.USER_ID = fmpd.USER_ID AND uk.USER_KEY = ?
+	WHERE f.FEED_ID = ? AND e.EVENT_ID = ? AND fmpd.manage_event = 1`)
 	if err != nil {
 		fmt.Println("Failed to prepare delete feed statement: ", err)
 		return false, err

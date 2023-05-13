@@ -9,21 +9,9 @@ import (
 
 func InsertMilestone(token, name, color string, feedID, day int) (bool, error) {
 	stmt, err := db.Prepare(`INSERT INTO milestone (FEED_ID, MILESTONE_NAME, MILESTONE_DAY, MILESTONE_COLOR) 
-	SELECT p.FEED_ID, ?, ?, ?
-		FROM (
-			SELECT fv.FEED_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-			
-			UNION
-			
-			SELECT f.FEED_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		WHERE p.FEED_ID = ?;
-	
+	SELECT fmpd.FEED_ID, ?, ?, ? from feed_member_permission_detail AS fmpd
+	INNER JOIN user_key as uk ON uk.USER_ID = fmpd.USER_ID AND uk.USER_KEY = ?
+	WHERE fmpd.FEED_ID = ?  AND fmpd.manage_milestone = 1;	
 	`)
 	if err != nil {
 		fmt.Println("Failed to prepare insert milestone statement: ", err)
@@ -31,7 +19,7 @@ func InsertMilestone(token, name, color string, feedID, day int) (bool, error) {
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(name, day, color, token, token, feedID)
+	result, err := stmt.Exec(name, day, color, token, feedID)
 	if err != nil {
 		fmt.Println("Failed to execute insert milestone statement: ", err)
 		return false, err
@@ -53,24 +41,14 @@ func InsertMilestone(token, name, color string, feedID, day int) (bool, error) {
 func SelectMilestone(token string, feedID int) ([]models.Milestone, error) {
 
 	query := `
-	SELECT m.MILESTONE_ID, p.FEED_ID, m.MILESTONE_NAME, m.MILESTONE_DAY, m.MILESTONE_COLOR
-		FROM (
-			SELECT fv.FEED_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-			
-			UNION
-			
-			SELECT f.FEED_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		INNER JOIN milestone as m ON m.FEED_ID = p.FEED_ID
-		WHERE p.FEED_ID = ?;
+	SELECT m.MILESTONE_ID, fmpd.FEED_ID, m.MILESTONE_NAME, m.MILESTONE_DAY, m.MILESTONE_COLOR
+	from feed_member_permission_detail AS fmpd
+	INNER JOIN user_key as uk ON uk.USER_ID = fmpd.USER_ID AND uk.USER_KEY = ?
+	INNER JOIN milestone as m ON m.FEED_ID = fmpd.FEED_ID
+	WHERE fmpd.FEED_ID = ?  AND fmpd.manage_milestone = 1;
 	`
 
-	rows, err := db.Query(query, token, token, feedID)
+	rows, err := db.Query(query, token, feedID)
 	if err != nil {
 		fmt.Println("Failed to execute query: ", err)
 		return nil, err

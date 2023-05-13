@@ -46,6 +46,13 @@ func SetUp(router *gin.Engine) {
 			milestoneRoutes.DELETE("/:milestoneID", handlers.RemoveMilestone)
 		}
 
+		memberRoutes := feedRoutes.Group("/:id/member")
+		{
+			memberRoutes.POST("/", handlers.CreateMember)
+			memberRoutes.GET("/", handlers.GetMembers)
+
+		}
+
 	}
 
 }

@@ -9,20 +9,10 @@ import (
 
 func InsertSubscription(token, subscription string, feedID int) (bool, error) {
 	stmt, err := db.Prepare(`INSERT INTO subscription (USER_ID, FEED_ID, END_POINT) 
-	SELECT p.USER_ID, p.FEED_ID, ?	
-		FROM (
-			SELECT fv.FEED_ID, uk.USER_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-			
-			UNION
-			
-			SELECT f.FEED_ID, uk.USER_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		WHERE p.FEED_ID = ?;
+	SELECT fmp.USER_ID, fmp.FEED_ID, ?	
+	from feed_member_permission AS fmp
+	INNER JOIN user_key as uk ON uk.USER_ID = fmp.USER_ID AND uk.USER_KEY = ?
+	WHERE fmp.FEED_ID = ?   ;
 	
 	`)
 	if err != nil {
@@ -31,7 +21,7 @@ func InsertSubscription(token, subscription string, feedID int) (bool, error) {
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(subscription, token, token, feedID)
+	result, err := stmt.Exec(subscription, token, feedID)
 	if err != nil {
 		fmt.Println("Failed to execute insert subscription statement: ", err)
 		return false, err
@@ -53,24 +43,14 @@ func InsertSubscription(token, subscription string, feedID int) (bool, error) {
 func SelectSubscription(token, subscription string, feedID int) ([]models.Subscription, error) {
 
 	query := `
-	SELECT p.USER_ID, p.FEED_ID, s.END_POINT
-		FROM (
-			SELECT fv.FEED_ID, uk.USER_ID
-			FROM barnyard.feed_member AS fv
-			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
-			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
-
-			UNION
-
-			SELECT f.FEED_ID, uk.USER_ID
-			FROM barnyard.feed AS f
-			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
-		) AS p
-		INNER JOIN subscription as s ON s.FEED_ID = p.FEED_ID AND s.USER_ID = p.USER_ID
-		WHERE p.FEED_ID = ? AND s.END_POINT = ?;
+	SELECT fmp.USER_ID, fmp.FEED_ID, s.END_POINT
+	from feed_member_permission AS fmp
+	INNER JOIN user_key as uk ON uk.USER_ID = fmp.USER_ID AND uk.USER_KEY = ?
+	INNER JOIN subscription as s ON s.FEED_ID = fmp.FEED_ID AND s.USER_ID = fmp.USER_ID
+		WHERE fmp.FEED_ID = ? AND s.END_POINT = ?;
 	`
 
-	rows, err := db.Query(query, token, token, feedID, subscription)
+	rows, err := db.Query(query, token, feedID, subscription)
 	if err != nil {
 		fmt.Println("Failed to execute query: ", err)
 		return nil, err

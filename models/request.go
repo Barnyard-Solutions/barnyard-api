@@ -19,3 +19,8 @@ type CreateMilestoneRequest struct {
 type SubscriptionRequest struct {
 	Subscription string `json:"subscription"`
 }
+
+type MemberRequest struct {
+	Mail       string `json:"email"`
+	Permission int    `json:"permission"`
+}
