@@ -9,7 +9,7 @@ import (
 )
 
 func CreateSubscription(c *gin.Context) {
-	var requestBody models.CreateSubscriptionRequest
+	var requestBody models.SubscriptionRequest
 	token := c.GetString("token")
 	feedID := c.Param("id")
 
@@ -36,23 +36,37 @@ func CreateSubscription(c *gin.Context) {
 	})
 }
 
-/*
-
-func GetSubscriptions(c *gin.Context) {
+func IsSubscribed(c *gin.Context) {
 	token := c.GetString("token")
-	feeds, err := database.SelectFeeds(token)
+	feedID := c.Param("id")
+	endPoint := c.Param("endPoint")
+	result := false
+
+	// Convert feedID to an integer
+	feedIDInt, err := strconv.Atoi(feedID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to retrieve user's feeds"})
+		c.JSON(400, gin.H{"error": "Invalid feed ID"})
 		return
 	}
 
+	subscriptions, err := database.SelectSubscription(token, endPoint, feedIDInt)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve user's subscriptions"})
+		return
+	}
+
+	if len(subscriptions) >= 1 {
+		result = true
+	}
+
 	c.JSON(200, gin.H{
-		"message": "User feeds retrieved successfully",
-		"feeds":   feeds,
+		"message":    "User subscriptions retrieved successfully",
+		"subscribed": result,
 	})
 }
 
-func RemoveFeed(c *gin.Context) {
+func RemoveSubscription(c *gin.Context) {
+	var requestBody models.SubscriptionRequest
 	token := c.GetString("token")
 	feedID := c.Param("id")
 
@@ -63,10 +77,20 @@ func RemoveFeed(c *gin.Context) {
 		return
 	}
 
-	success, err := database.DeleteFeed(token, feedIDInt)
-	if err != nil || !success {
-		c.JSON(500, gin.H{"error": err})
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
 
+	success, err := database.DeleteSubscription(token, requestBody.Subscription, feedIDInt)
+	if err != nil || !success {
+		if err == database.ErrUnauthorized {
+			c.JSON(401, gin.H{"error": "Unauthorized"})
+		} else if err == database.ErrNotFound {
+			c.JSON(404, gin.H{"error": "Subscription not found"})
+		} else {
+			c.JSON(500, gin.H{"error": "Internal server error"})
+		}
 		return
 	}
 
@@ -75,4 +99,3 @@ func RemoveFeed(c *gin.Context) {
 	})
 
 }
-*/

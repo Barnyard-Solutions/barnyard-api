@@ -86,8 +86,13 @@ func RemoveEvent(c *gin.Context) {
 
 	success, err := database.DeleteEvent(token, feedIDInt, eventIDInt)
 	if err != nil || !success {
-		c.JSON(500, gin.H{"error": err})
-
+		if err == database.ErrUnauthorized {
+			c.JSON(401, gin.H{"error": "Unauthorized"})
+		} else if err == database.ErrNotFound {
+			c.JSON(404, gin.H{"error": "Event not found"})
+		} else {
+			c.JSON(500, gin.H{"error": "Internal server error"})
+		}
 		return
 	}
 

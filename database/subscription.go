@@ -1,6 +1,7 @@
 package database
 
 import (
+	"barnyard/api/models"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -49,44 +50,43 @@ func InsertSubscription(token, subscription string, feedID int) (bool, error) {
 	return false, nil
 }
 
-/*
-func SelectMilestone(token string, feedID int) ([]models.Milestone, error) {
+func SelectSubscription(token, subscription string, feedID int) ([]models.Subscription, error) {
 
 	query := `
-	SELECT m.MILESTONE_ID, p.FEED_ID, m.MILESTONE_NAME, m.MILESTONE_DAY, m.MILESTONE_COLOR
+	SELECT p.USER_ID, p.FEED_ID, s.END_POINT
 		FROM (
-			SELECT fv.FEED_ID
+			SELECT fv.FEED_ID, uk.USER_ID
 			FROM barnyard.feed_member AS fv
 			INNER JOIN barnyard.feed AS f ON fv.FEED_ID = f.FEED_ID
 			INNER JOIN barnyard.user_key AS uk ON uk.USER_ID = fv.USER_ID AND uk.USER_KEY = ?
 
 			UNION
 
-			SELECT f.FEED_ID
+			SELECT f.FEED_ID, uk.USER_ID
 			FROM barnyard.feed AS f
 			INNER JOIN barnyard.user_key AS uk ON f.OWNER_ID = uk.USER_ID AND uk.USER_KEY = ?
 		) AS p
-		INNER JOIN milestone as m ON m.FEED_ID = p.FEED_ID
-		WHERE p.FEED_ID = ?;
+		INNER JOIN subscription as s ON s.FEED_ID = p.FEED_ID AND s.USER_ID = p.USER_ID
+		WHERE p.FEED_ID = ? AND s.END_POINT = ?;
 	`
 
-	rows, err := db.Query(query, token, token, feedID)
+	rows, err := db.Query(query, token, token, feedID, subscription)
 	if err != nil {
 		fmt.Println("Failed to execute query: ", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	milestones := make([]models.Milestone, 0)
+	subscriptions := make([]models.Subscription, 0)
 
 	for rows.Next() {
-		var milestone models.Milestone
-		err := rows.Scan(&milestone.ID, &milestone.FeedID, &milestone.Name, &milestone.Day, &milestone.Color)
+		var subscription models.Subscription
+		err := rows.Scan(&subscription.UserID, &subscription.FeedID, &subscription.EndPoint)
 		if err != nil {
 			fmt.Println("Failed to scan row: ", err)
 			continue
 		}
-		milestones = append(milestones, milestone)
+		subscriptions = append(subscriptions, subscription)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -94,26 +94,25 @@ func SelectMilestone(token string, feedID int) ([]models.Milestone, error) {
 		return nil, err
 	}
 
-	return milestones, nil
+	return subscriptions, nil
 
 }
 
-func DeleteMilestone(token string, feedID, milestoneID int) (bool, error) {
+func DeleteSubscription(token, subscription string, feedID int) (bool, error) {
 	stmt, err := db.Prepare(`
-	DELETE m
-	FROM milestone AS m
-	INNER JOIN feed AS f ON f.FEED_ID = m.FEED_ID
-	INNER JOIN user_key AS uk ON uk.USER_ID = f.OWNER_ID AND uk.USER_KEY = ?
-	WHERE f.FEED_ID = ? AND m.MILESTONE_ID = ?`)
+	DELETE s
+	FROM subscription AS s
+	INNER JOIN user_key AS uk ON uk.USER_ID = s.USER_ID AND uk.USER_KEY = ?
+	WHERE s.FEED_ID = ? AND s.END_POINT = ?`)
 	if err != nil {
-		fmt.Println("Failed to prepare delete milestone statement: ", err)
+		fmt.Println("Failed to prepare delete subscription statement: ", err)
 		return false, err
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(token, feedID, milestoneID)
+	result, err := stmt.Exec(token, feedID, subscription)
 	if err != nil {
-		fmt.Println("Failed to execute delete milestone statement: ", err)
+		fmt.Println("Failed to execute delete subscription statement: ", err)
 		return false, err
 	}
 
@@ -128,6 +127,5 @@ func DeleteMilestone(token string, feedID, milestoneID int) (bool, error) {
 	}
 
 	fmt.Println("No rows were affected: ", rowsAffected)
-	return false, nil
+	return false, ErrNotFound
 }
-*/

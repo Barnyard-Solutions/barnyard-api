@@ -128,5 +128,5 @@ func DeleteMilestone(token string, feedID, milestoneID int) (bool, error) {
 	}
 
 	fmt.Println("No rows were affected: ", rowsAffected)
-	return false, nil
+	return false, ErrNotFound
 }

@@ -127,5 +127,5 @@ func DeleteEvent(token string, feedID, eventID int) (bool, error) {
 		return true, nil
 	}
 
-	return false, nil
+	return false, ErrNotFound
 }

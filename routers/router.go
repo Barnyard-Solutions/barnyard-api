@@ -27,6 +27,9 @@ func SetUp(router *gin.Engine) {
 		subscriptionRoutes := feedRoutes.Group("/:id/subscription")
 		{
 			subscriptionRoutes.POST("/", handlers.CreateSubscription)
+			subscriptionRoutes.GET("/:endPoint", handlers.IsSubscribed)
+			subscriptionRoutes.DELETE("/", handlers.RemoveSubscription)
+
 		}
 
 		eventRoutes := feedRoutes.Group("/:id/event")

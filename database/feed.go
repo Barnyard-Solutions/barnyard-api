@@ -107,5 +107,5 @@ func DeleteFeed(token string, feedID int) (bool, error) {
 		return true, nil
 	}
 
-	return false, nil
+	return false, ErrNotFound
 }

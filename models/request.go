@@ -16,6 +16,6 @@ type CreateMilestoneRequest struct {
 	Color string `json:"color"`
 }
 
-type CreateSubscriptionRequest struct {
+type SubscriptionRequest struct {
 	Subscription string `json:"subscription"`
 }
