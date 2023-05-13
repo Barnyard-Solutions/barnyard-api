@@ -32,6 +32,21 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
+func GetUser(c *gin.Context) {
+	token := c.GetString("token")
+
+	user, err := database.SelectUser(token)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve user"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User selected successfully",
+		"user":    user,
+	})
+}
+
 func GetToken(c *gin.Context) {
 	var user models.User
 

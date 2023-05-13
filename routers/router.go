@@ -15,6 +15,7 @@ func SetUp(router *gin.Engine) {
 	{
 		userRoutes.POST("/", handlers.CreateUser)
 		userRoutes.POST("/token", handlers.GetToken)
+		userRoutes.GET("/", middlewares.TokenAuthMiddleware(), handlers.GetUser)
 	}
 
 	feedRoutes := v1.Group("/feed")
@@ -49,7 +50,9 @@ func SetUp(router *gin.Engine) {
 		memberRoutes := feedRoutes.Group("/:id/member")
 		{
 			memberRoutes.POST("/", handlers.CreateMember)
+			memberRoutes.PUT("/", handlers.UpdateMember)
 			memberRoutes.GET("/", handlers.GetMembers)
+			memberRoutes.DELETE("/", handlers.RemoveMember)
 
 		}
 

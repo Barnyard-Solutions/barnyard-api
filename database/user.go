@@ -1,6 +1,7 @@
 package database
 
 import (
+	"barnyard/api/models"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,6 +22,20 @@ func InsertUser(email, passKey string) error {
 	}
 
 	return nil
+}
+
+func SelectUser(token string) (models.SafeUser, error) {
+	var user models.SafeUser
+	query := `Select u.USER_ID, u.USER_MAIL from user as u
+	INNER JOIN barnyard.user_key as uk ON uk.USER_ID = u.USER_ID AND uk.USER_KEY = ?`
+
+	err := db.QueryRow(query, token).Scan(&user.ID, &user.Email)
+	if err != nil {
+		fmt.Println("Failed to execute select user statement: ", err)
+		return user, err
+	}
+
+	return user, nil
 }
 
 func GenerateUserToken(email, passKey string) (string, error) {
