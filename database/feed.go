@@ -40,6 +40,40 @@ func SelectFeeds(token string) ([]models.Feed, error) {
 	return feeds, nil
 }
 
+func SelectFeedsWithSub(token, subscription string) ([]models.FeedSub, error) {
+	query := `SELECT fmp.FEED_ID, f.FEED_NAME, fmp.permission, s.END_POINT IS NOT NULL from feed_member_permission AS fmp
+	INNER JOIN user_key as uk ON uk.USER_ID = fmp.USER_ID AND uk.USER_KEY = ?
+	INNER JOIN feed as f ON f.FEED_ID = fmp.FEED_ID
+	LEFT JOIN subscription as s ON s.FEED_ID = fmp.FEED_ID AND s.USER_ID = fmp.USER_ID AND s.END_POINT = ?
+	`
+
+	rows, err := db.Query(query, token, subscription)
+	if err != nil {
+		fmt.Println("Failed to execute query: ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	feeds := make([]models.FeedSub, 0)
+
+	for rows.Next() {
+		var feed models.FeedSub
+		err := rows.Scan(&feed.ID, &feed.Name, &feed.Permission, &feed.Subscribed)
+		if err != nil {
+			fmt.Println("Failed to scan row: ", err)
+			continue
+		}
+		feeds = append(feeds, feed)
+	}
+
+	if err = rows.Err(); err != nil {
+		fmt.Println("Error occurred while iterating over rows: ", err)
+		return nil, err
+	}
+
+	return feeds, nil
+}
+
 func InsertFeed(token, feedName string) (bool, error) {
 	stmt, err := db.Prepare(`INSERT INTO feed (FEED_NAME, OWNER_ID) 
 	SELECT ?, uk.USER_ID FROM user_key as uk where uk.USER_KEY = ? `)

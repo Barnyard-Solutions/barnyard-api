@@ -11,16 +11,34 @@ import (
 
 func GetFeeds(c *gin.Context) {
 	token := c.GetString("token")
-	feeds, err := database.SelectFeeds(token)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to retrieve user's feeds"})
-		return
+	endPoint := c.Query("endpoint") // Extract the value of "endpoint" query parameter
+
+	if endPoint != "" {
+		feeds, err := database.SelectFeedsWithSub(token, endPoint)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to retrieve user's feeds"})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": "User feeds retrieved successfully",
+			"feeds":   feeds,
+		})
+
+	} else {
+		feeds, err := database.SelectFeeds(token)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to retrieve user's feeds"})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": "User feeds retrieved successfully",
+			"feeds":   feeds,
+		})
+
 	}
 
-	c.JSON(200, gin.H{
-		"message": "User feeds retrieved successfully",
-		"feeds":   feeds,
-	})
 }
 
 func CreateFeed(c *gin.Context) {
