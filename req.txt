@@ -1,6 +1,0 @@
-gunicorn==19.7.1
-Flask==2.0.2
-Flask-Cors==3.0.10
-rich==11.2.0
-mysql-connector-python==8.0.28
-pywebpush==1.14.0
