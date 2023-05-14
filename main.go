@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 
 	"barnyard/api/database"
@@ -13,7 +15,14 @@ import (
 
 func main() {
 
-	err := database.InitDB("API:kKQdH@qX93@tcp(localhost:3306)/barnyard")
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dbURL := fmt.Sprintf("API:kKQdH@qX93@tcp(%s:3306)/barnyard?timeout=120s", dbHost)
+
+	err := database.InitDB(dbURL)
 	if err != nil {
 		fmt.Println("Failed to connect to the database:", err)
 		return
@@ -30,6 +39,6 @@ func main() {
 
 	routers.SetUp(router)
 
-	router.Run("localhost:5000")
+	router.Run("0.0.0.0:5000")
 
 }
